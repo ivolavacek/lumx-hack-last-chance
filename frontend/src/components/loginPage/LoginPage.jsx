@@ -38,7 +38,7 @@ function Login() {
             if (!err?.response) {
                 setErrMsg('No Server Response');
             } else if (err.response?.status === 400) {
-                setErrMsg('Missing Email or Password');
+                setErrMsg('Missing Email/User or Password');
             } else if (err.response?.status === 401) {
                 setErrMsg('Unauthorized');
             } else {
@@ -63,7 +63,7 @@ function Login() {
                     <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
                     <p class="title-login">Login</p>
                     <form onSubmit={handleSubmit}>
-                        <label htmlFor="email">Email:</label>
+                        <label htmlFor="email">Email or username:</label>
                         <input
                             type="text"
                             id="email"

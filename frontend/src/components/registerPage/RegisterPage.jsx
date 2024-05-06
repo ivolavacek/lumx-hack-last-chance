@@ -4,19 +4,72 @@ import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icon
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import axios from 'axios'
 import './RegisterPage.css'
-import ModeContext from '../switchButton/ModeContext'
+import ModeContext from "../switchButton/ModeContext"
+
 
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 const EMAIL_REGEX = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,}$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9]{3,16}$/;
 
 
 const Register = () => {
-    const { language, toggleLanguage } = useContext(ModeContext);
+    const { language } = useContext(ModeContext);
 
+    const text = language === 'en' ? {
+        h1: 'Account created!',
+        h2: 'Welcome to MediaChain',
+        yourId: 'Your id: ',
+        title: 'Register',
+        email: 'Email',
+        username: 'Username',
+        password: 'Password',
+        confirm: 'Confirm Password',
+        button: 'Register',
+        already: 'Already registred?',
+        error1: "Make sure it's a valid email.",
+        error2: 'Passwords must match.',
+        error3: 'Username invalid.',
+        instruction1: '8 to 24 characters.',
+        instruction2: 'Must include uppercase and lowercase letters, a number and a special character.',
+        instruction3: 'Allowed special characters: ',
+        errmsg1: 'Invalid. Try Again.',
+        errmsg2: 'Email already registered.',
+        errmsg3: 'Username already taken.',
+        errmsg4: 'No Server Response.',
+        errmsg5: 'Registration Failed.',
+    } : {
+        h1: 'Conta criada!',
+        h2: 'Bem-vindo a MediaChain',
+        yourId: 'Sua id: ',
+        title: 'Registro',
+        email: 'Email',
+        username: 'Nome de usuário',
+        password: 'Senha',
+        confirm: 'Confirme a senha',
+        button: 'Registrar',
+        already: 'Já registrado?',
+        error1: "Certifique que o email é válido.",
+        error2: 'As senhas devem corresponder.',
+        error3: 'Nome de usuário inválido.',
+        instruction1: 'De 8 a 24 caracteres.',
+        instruction2: 'Deve incluir pelo menos uma letra maiúscula, uma letra minúscula, um número e um caractere especial.',
+        instruction3: 'Caracteres especiais permitidos: ',
+        errmsg1: 'Inválido. Tente novamente.',
+        errmsg2: 'E-mail já registrado.',
+        errmsg3: 'Nome de usuário já utilizado.',
+        errmsg4: 'Sem resposta do servidor.',
+        errmsg5: 'Falha no registro.',
+    }
+
+    const usernameRef = useRef();
     const emailRef = useRef();
     const errRef = useRef();
 
     const [lumxId, setLumxId] = useState('');
+
+    const [username, setUsername] = useState('');
+    const [validUsername, setValidUsername] = useState(false);
+    const [usernameFocus, setUsernameFocus] = useState(false);
 
     const [email, setEmail] = useState('');
     const [validEmail, setValidEmail] = useState(false);
@@ -38,6 +91,10 @@ const Register = () => {
     }, [])
 
     useEffect(() => {
+        setValidUsername(USERNAME_REGEX.test(username));
+    }, [username])
+
+    useEffect(() => {
         setValidEmail(EMAIL_REGEX.test(email));
     }, [email])
 
@@ -48,84 +105,56 @@ const Register = () => {
 
     useEffect(() => {
         setErrMsg('');
-    }, [email, pwd, matchPwd])
+    }, [username, email, pwd, matchPwd])
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         // if user tries to submit enabling the button
-        const v1 = EMAIL_REGEX.test(email);
-        const v2 = PWD_REGEX.test(pwd);
-        if (!v1 || !v2) {
-            setErrMsg("Invalid. Try Again.");
+        const v1 = USERNAME_REGEX.test(username);
+        const v2 = EMAIL_REGEX.test(email);
+        const v3 = PWD_REGEX.test(pwd);
+        if (!v1 || !v2 || !v3) {
+            setErrMsg(text.errmsg1);
             return;
         }
         // Back-end
         try {
-            const verify = await axios.post('http://localhost:3000/already',
-                JSON.stringify({ email }),
-                {
-                    headers: { 'Content-Type': 'application/json' },
-                    withCredentials: true
-                })
-
-            if (verify.data) {
-                setErrMsg('Already Registered');
+            const verify = await axios.post('http://localhost:3000/checkregister',
+              JSON.stringify({ email, username }),
+              {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+              }
+            )
+        
+            if (verify.data === 'email') {
+              setErrMsg(text.errmsg2);
+            } else if (verify.data === 'username') {
+              setErrMsg(text.errmsg3);
             } else {
-                const response = await axios.post('http://localhost:3000/register',
-                    JSON.stringify({ email, pwd }),
-                    {
-                        headers: { 'Content-Type': 'application/json' },
-                        withCredentials: true
-                    });
-                    
+              const response = await axios.post('http://localhost:3000/register',
+                JSON.stringify({ username, email, pwd }),
+                {
+                  headers: { 'Content-Type': 'application/json' },
+                  withCredentials: true
+                });
+
                 setLumxId(response.data);
 
-
                 setSuccess(true);
+                setUsername('');
                 setEmail('');
                 setPwd('');
                 setMatchPwd('');
             }
         } catch (err) {
             if (!err?.response) {
-                setErrMsg('No Server Response');
+                setErrMsg(text.errmsg4);
             } else {
-                setErrMsg('Registration Failed')
+                setErrMsg(text.errmsg5);
             }
             errRef.current.focus();
         }
-    }
-
-    const text = language === 'en' ? {
-        h1: 'Account created!',
-        h2: 'Welcome to MediaChain',
-        yourId: 'Your id: ',
-        title: 'Register',
-        email: 'Email',
-        password: 'Password',
-        confirm: 'Confirm Password',
-        button: 'Register',
-        already: 'Already registred?',
-        error1: "Make sure it's a valid email.",
-        error2: 'Passwords must match.',
-        instruction1: '8 to 24 characters.',
-        instruction2: 'Must include uppercase and lowercase letters, a number and a special character.',
-        instruction3: 'Allowed special characters: ',
-    } : {
-        h1: 'Conta criada!',
-        h2: 'Bem-vindo a MediaChain',
-        yourId: 'Sua id: ',
-        title: 'Registro',
-        email: 'Email',
-        password: 'Senha',
-        confirm: 'Confirme a senha',
-        button: 'Registrar',
-        already: 'Já registrado?',
-        error1: "Certifique que o email é válido.",
-        error2: 'As senhas devem corresponder.',
-        instruction1: 'De 8 a 24 caracteres.',
-        instruction2: 'Deve incluir pelo menos uma letra maiúscula, uma letra minúscula, um número e um caractere especial.',
-        instruction3: 'Caracteres especiais permitidos: ',
     }
 
     return(
@@ -145,6 +174,29 @@ const Register = () => {
                     <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
                     <div className="title-register">{text.title}</div>
                     <form onSubmit={handleSubmit}>
+                        <label htmlFor="username">
+                            {text.username}:
+                            <FontAwesomeIcon icon={faCheck} className={validUsername ? "valid" : "hide"} />
+                            <FontAwesomeIcon icon={faTimes} className={validUsername || !username ? "hide" : "invalid"} />
+                        </label>
+                        <input
+                            type="text"
+                            id="username"
+                            ref={usernameRef}
+                            autoComplete="off"
+                            onChange={(e) => setUsername(e.target.value)}
+                            value={username}
+                            required
+                            aria-invalid={validUsername ? "false" : "true"}
+                            aria-describedby="uidnote"
+                            onFocus={() => setUsernameFocus(true)}
+                            onBlur={() => setUsernameFocus(false)}
+                        />
+                        <p id="uidnote" className={usernameFocus && username && !validUsername ? "instructions" : "offscreen"}>
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            {text.error3}<br />
+                        </p>
+
                         <label htmlFor="email">
                             {text.email}:
                             <FontAwesomeIcon icon={faCheck} className={validEmail ? "valid" : "hide"} />
@@ -213,7 +265,7 @@ const Register = () => {
                             {text.error2}
                         </p>
 
-                        <button disabled={!validEmail || !validPwd || !validMatch ? true : false}>{text.button}</button>
+                        <button disabled={!validUsername || !validEmail || !validPwd || !validMatch ? true : false}>{text.button}</button>
                     </form>
                     <p>
                         {text.already}<br />
