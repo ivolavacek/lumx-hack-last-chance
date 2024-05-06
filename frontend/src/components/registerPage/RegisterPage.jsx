@@ -61,14 +61,14 @@ const Register = () => {
         }
         // Back-end
         try {
-            const verify = await axios.post('http://localhost:3000/alreadyregistered',
+            const verify = await axios.post('http://localhost:3000/already',
                 JSON.stringify({ email }),
                 {
                     headers: { 'Content-Type': 'application/json' },
                     withCredentials: true
                 })
 
-            if (verify) {
+            if (verify.data) {
                 setErrMsg('Already Registered');
             } else {
                 const response = await axios.post('http://localhost:3000/register',
@@ -76,7 +76,7 @@ const Register = () => {
                     {
                         headers: { 'Content-Type': 'application/json' },
                         withCredentials: true
-                    })
+                    });
                     
                 setLumxId(response.data);
 

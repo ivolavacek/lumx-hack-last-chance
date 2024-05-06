@@ -25,14 +25,29 @@ app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 
-// Rota para lidar com requisições POST para /register
+app.post('/already', (req, res) => {
+  // Extrair os dados do corpo da requisição
+  const { email } = req.body;
+
+  db.get("SELECT email FROM clientes WHERE email = ?", [email], (err, row) => {
+    if (err) {
+      console.error(err.message);
+    } 
+    if (row) {
+        res.send(row); 
+    } else {
+        res.send(false);
+    };
+  });
+});
+
 app.post('/register', (req, res) => {
     // Extrair os dados do corpo da requisição
     const { email, pwd } = req.body;
 
-    // Mandar post pra API da Lumx
     let jsonData; // Variável externa para armazenar os dados JSON
 
+    // Mandar post pra API da Lumx
     fetch('https://protocol-sandbox.lumx.io/v2/wallets', options)
         .then(response => response.json())
         .then(data => {
@@ -46,29 +61,31 @@ app.post('/register', (req, res) => {
               });
 
             res.send(jsonData.id); 
-            db.close();
         })
         .catch(err => console.error(err));
 });
 
-app.post('/alreadyregistered', (req, res) => {
-  // Extrair os dados do corpo da requisição
-  const { email } = req.body;
-
-  db.get("SELECT email FROM clientes WHERE email = ?", [email], (err, row) => {
-    if (err) {
-      console.error(err.message);
-    }
-    if (row) {
-        res.send(row.email); 
-    } else {
-        res.send(false);
-    }
-  });
-});
-
 app.get('/', (req, res) => {
   res.send('Welcome to the root URL!');
+});
+
+app.post('/authorize', (req, res) => {
+  // Extrair os dados do corpo da requisição
+  const { email, pwd } = req.body;
+
+  // Conferir se o email e a senha batem na db
+
+    db.run("SELECT * FROM clientes WHERE email = ? AND senha = ?", [email, pwd], (err, row) => {
+        if (err) {
+          return console.error(err.message);
+        }     
+        if (row) {
+          res.send(true); 
+        } else {
+          // Não foram encontrados o email e a senha na base de dados
+          res.send(false);
+        }
+    });
 });
 
 // Start the server
