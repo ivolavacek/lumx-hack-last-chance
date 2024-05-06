@@ -68,7 +68,7 @@ const Register = () => {
                     withCredentials: true
                 })
 
-            if (verify == false) {
+            if (verify) {
                 setErrMsg('Already Registered');
             } else {
                 const response = await axios.post('http://localhost:3000/register',
@@ -82,8 +82,6 @@ const Register = () => {
 
 
                 setSuccess(true);
-                //clear state and controlled inputs
-                //need value attrib on inputs for this
                 setEmail('');
                 setPwd('');
                 setMatchPwd('');
