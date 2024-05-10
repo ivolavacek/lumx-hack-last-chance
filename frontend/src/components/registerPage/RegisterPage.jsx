@@ -101,7 +101,7 @@ const Register = () => {
     const text = language === 'en' ? {
         h1: 'Account created!',
         h2: 'Welcome to MediaChain',
-        yourId: 'Your id:',
+        yourId: 'Your id: ',
         title: 'Register',
         email: 'Email',
         password: 'Password',
@@ -116,7 +116,7 @@ const Register = () => {
     } : {
         h1: 'Conta criada!',
         h2: 'Bem-vindo a MediaChain',
-        yourId: 'Sua id:,',
+        yourId: 'Sua id: ',
         title: 'Registro',
         email: 'Email',
         password: 'Senha',

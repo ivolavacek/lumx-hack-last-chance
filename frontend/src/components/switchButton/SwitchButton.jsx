@@ -8,7 +8,7 @@ const SwitchButton = () => {
   
     return (
         <label className="switch-button">
-            <input type="checkbox" id="language-switch" onClick={toggleLanguage} checked={language === 'pt'}/>
+            <input type="checkbox" id="language-switch" onChange={toggleLanguage} checked={language === 'pt'}/>
             <div className={`slider ${language}`}>
                 <div className="button"></div>
                 <span className="label left">EN</span>
