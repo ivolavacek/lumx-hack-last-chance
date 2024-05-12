@@ -40,6 +40,10 @@
     height: 30px;
 }
 
+.icon {
+    width: 25px;
+}
+
 input {
     height: 30px;
 }
@@ -80,4 +84,49 @@ input {
 .confirm-button:disabled {
     background-color: #ccc;
     color: #fff;
+}
+
+.lastButtons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+}
+
+.back-button {
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+}
+  
+.send-button {
+    background-color: #941344;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+}
+
+.popup-item {
+    margin-bottom: 5px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #ccc;
+}
+
+.popup-item b {
+    font-size: 14px;
 }

@@ -52,6 +52,19 @@ app.post('/register', (req, res) => {
     });
   })
 
+  // .then(() => {
+  //   const query = 'SELECT * FROM clientes';
+  //   db.all(query, [], (err, rows) => {
+  //     if (err) {
+  //       console.error(err);
+  //       res.status(500).send('Error fetching users');
+  //     } else {
+  //       console.log('Users:', rows);
+  //       res.json(rows);
+  //     }
+  //   });
+  // })
+
   .catch(err => {
     console.error(err);
     res.status(500).send('Error registering user');
@@ -79,6 +92,47 @@ app.post('/checkregister', (req, res) => {
       }
     } else {
       res.send(false);
+    }
+  });
+});
+
+// Check user route
+app.post('/checkuser', (req, res) => {
+  const { user } = req.body;
+
+  const query = `
+    SELECT * FROM clientes WHERE email = ? OR username = ?
+  `;
+  const params = [user, user];
+
+  db.get(query, params, (err, row) => {
+    if (err) {
+      console.error(err);
+      res.send(false);
+    } else if (row) {
+      res.send(true);
+    } else {
+      res.send(false);
+    }
+  });
+});
+
+app.post('/getinfo', (req, res) => {
+  const { user } = req.body;
+
+  const query = `
+    SELECT username, email, id_lumx, wallet_address FROM clientes WHERE email = ? OR username = ?
+  `;
+  const params = [user, user];
+
+  db.get(query, params, (err, row) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send(err);
+    } else if (row) {
+      res.send(row);
+    } else {
+      res.send({});
     }
   });
 });

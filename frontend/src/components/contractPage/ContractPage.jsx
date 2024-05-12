@@ -1,11 +1,13 @@
 import './ContractPage.css'
+import { ethers } from "ethers"
+import contractABI  from "./ABI.json"
+import { useContext, useState } from 'react'
 import ModeContext from '../switchButton/ModeContext'
-import { Link } from 'react-router-dom'
-import { useContext, useState } from 'react';
-import { ethers } from "ethers";
-import contractABI  from "./ABI.json";
-import "./ContractPage.css";
-import { v4 as uuidv4 } from 'uuid';
+import Popup from '../popup/Popup'
+import { v4 as uuidv4 } from 'uuid'
+import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import axios from 'axios'
 
 const contractAddress = "0x58FdA51449837Ac04f9543329E1EDFB66326CcBD";
 
@@ -19,7 +21,7 @@ function Contract() {
     removeButton: 'Remove',
     confirmButton: 'Confirm',
     feedback: 'Register',
-    wallet: 'Wallet',
+    input: 'User/Email',
     percentage: 'Percentage',
     sending: 'Sending, please wait a moment...',
     sent: 'Sent',
@@ -31,16 +33,26 @@ function Contract() {
     removeButton: 'Remover',
     confirmButton: 'Confirmar',
     feedback: 'Register',
-    wallet: 'Carteira',
+    input: 'Usuário/Email',
     percentage: 'Porcentagem',
     sending: 'Enviando, aguarde um momento...',
     sent: 'Enviado',
     error: 'Ops, ocorreu algum erro !!',
   }
 
+  const [usersArray, setUsersArray] = useState([]);
+  const [percentagesArray, setPercentagesArray] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [percentages, setPercentages] = useState([]);
+
+  const [loading, setLoading] = useState("");
+  const [inputs, setInputs] = useState([]);
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [popupData, setPopupData] = useState([]);
+
   // Add an input element to the array
   const addInput = () => {
-    setInputs([...inputs, { id: uuidv4(), address: '', percentual: ''}]);
+    setInputs([...inputs, { id: uuidv4(), user: '', percentual: '', icon: ''}]);
   };
 
   // Remove an input element from the array
@@ -51,11 +63,12 @@ function Contract() {
   // Render the input elements
   const inputElements = inputs.map((input) => (
     <div key={input.id} className="input-box">
+      <div className="icon">{input.icon}</div>
       <input
         type="text"
-        placeholder={text.wallet}
-        name="address"
-        value={input.adress}
+        placeholder={text.input}
+        name="user"
+        value={input.user}
         onChange={(event) => handleInputChange(input.id, event)}
       />
       <input
@@ -64,37 +77,107 @@ function Contract() {
         name="percentual"
         value={input.percentual}
         onChange={(event) => handleInputChange(input.id, event)}
-        step="0.01"
+        step="1"
       />
       <button className="remove-button" onClick={() => removeInput(input.id)}>{text.removeButton}</button>
     </div>
   ));
 
-  const handleInputChange = (id, event) => {
+  const handleInputChange = async (id, event) => {
     const values = [...inputs];
     const index = values.findIndex((input) => input.id === id);
     values[index][event.target.name] = event.target.value;
     setInputs(values);
+
+    // Update the usersArray and percentagesArray arrays
+    const newUsersArray = [...usersArray];
+    const newPercentagesArray = [...percentagesArray];
+    newUsersArray[index] = event.target.name === 'user' ? event.target.value : newUsersArray[index];
+    newPercentagesArray[index] = event.target.name === 'percentual' ? parseFloat(event.target.value) : newPercentagesArray[index];
   
-    // Update the namesArray and numbersArray arrays
-    const newNamesArray = [...namesArray];
-    const newNumbersArray = [...numbersArray];
-    newNamesArray[index] = event.target.name === 'address' ? event.target.value : newNamesArray[index];
-    newNumbersArray[index] = event.target.name === 'percentual' ? parseFloat(event.target.value) : newNumbersArray[index];
-    setNamesArray(newNamesArray);
-    setNumbersArray(newNumbersArray);
+    // Validate user input
+    if (event.target.name === 'user') {
+      const userExists = await checkUserExists(event.target.value);
+      if (event.target.value === '') {
+        values[index].icon = ''
+      } else if (userExists) {
+        values[index].icon = <FontAwesomeIcon icon={faCheck} color="green" />;
+      } else {
+        values[index].icon = <FontAwesomeIcon icon={faTimes} color="red" />;
+      }
+    }
+    // Update the usersArray and percentagesArray arrays
+    setInputs(values);
+    setUsersArray(newUsersArray);
+    setPercentagesArray(newPercentagesArray);
   };
+  
+  // Function to check if a user exists in the database
+  const checkUserExists = async (user) => {
+    try {
+      // Send a request to the backend to check if the user exists
+      const checkUser = await axios.post('http://localhost:3000/checkuser',
+        JSON.stringify({ user }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+          withCredentials: true
+        }
+      )
+      return checkUser.data;
+
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   const isFormValid = () => {
-    const sum = numbersArray.reduce((a, b) => a + b, 0);
-    if (sum !== 100) {
+    const sum = inputs.reduce((a, b) => a + (parseFloat(b.percentual ?? 0) || 0), 0);
+    if (isNaN(sum) || sum !== 100) {
+      return false;
+    } else if (inputs.some((input) => parseFloat(input.percentual ?? 0) <= 0)) {
       return false;
     }
-    return inputs.every((input) => input.address!== '' && input.percentual!== '');
+    return inputs.every((input) => input.user !== '' && input.percentual !== '');
   };
 
-  const sendMembers = async (evt) => {
-    evt.preventDefault();
+  const showPopup = async (e) => {
+    e.preventDefault();
+    try {
+      const promises = usersArray.map((user) => {
+        return axios.post('http://localhost:3000/getinfo', 
+          { user }, {
+          headers: { 'Content-Type': 'application/json' },
+          withCredentials: true
+        });
+      });
+
+      const responses = await Promise.all(promises);
+      const data = responses.map((response, index) => {
+        const userInfo = response.data;
+        const percentage = percentagesArray[index];
+        return {
+          username: userInfo.username,
+          email: userInfo.email,
+          percentage: percentage,
+          id_lumx: userInfo.id_lumx,
+          wallet_address: userInfo.wallet_address
+        };
+      });
+
+      const addresses = data.map((item) => item.wallet_address);
+      const percentages = data.map((item) => item.percentage);
+
+      setPopupData(data);
+      setAddresses(addresses);
+      setPercentages(percentages);
+      setPopupOpen(true);
+
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const sendContract = async () => {
     try {
       if (window.ethereum) {
         const provider = new ethers.BrowserProvider(window.ethereum);
@@ -105,19 +188,14 @@ function Contract() {
           contractABI,
           signer,
         );
-        
-        console.log(namesArray);
-        console.log(numbersArray);
 
         setLoading(text.sending);
-        console.log("Enviando")
 
         //Chamando a função no contrato e passando seus argumentos
-        const sendTxn = await contract.addMembers(namesArray, numbersArray);
+        const sendTxn = await contract.addMembers(addresses, percentages);
 
         await sendTxn.wait();
         setLoading(text.sent);
-        console.log("Enviado"); 
       }
 
     } catch (error) {
@@ -127,19 +205,37 @@ function Contract() {
   }
 
   return (
-    <div className="container-contract">
-      <div className="form">
-        <p className="text1-contract">{text.title}</p>
-        <p className="text2-contract">{text.subtitle}</p>
+    <>
+      <div className="container-contract">
+        <div className="form">
+          <p className="text1-contract">{text.title}</p>
+          <p className="text2-contract">{text.subtitle}</p>
 
-        {inputElements}
-        <button className="add-button" onClick={addInput}>{text.addButton}</button>
+          {inputElements}
+          <button className="add-button" onClick={addInput}>{text.addButton}</button>
 
-        <button className="confirm-button" onClick={sendMembers} disabled={!isFormValid()}>{text.confirmButton}</button>
+          <button className="confirm-button" onClick={showPopup} disabled={!isFormValid()}>{text.confirmButton}</button>
 
-        <span className="loading">{loading}</span>
+          <span className="loading">{loading}</span>
+        </div>
       </div>
-    </div>
+      <Popup isOpen={popupOpen} onClose={() => setPopupOpen(false)}>
+        <div>
+          {popupData.map((item, index) => (
+            <div key={index} className="popup-item">
+              <p><b>Username:</b> {item.username}</p>
+              <p><b>Email:</b> {item.email}</p>
+              <p><b>Percentage: {item.percentage}%</b></p>
+              <p><b>ID Lumx:</b> {item.id_lumx}</p>
+            </div>
+          ))}
+          <div className="lastButtons">
+            <button className="back-button" onClick={() => setPopupOpen(false)}>Back</button>
+            <button className="send-button" onClick={() => {setPopupOpen(false); sendContract();}}>Send Contract</button>
+          </div>
+        </div>
+      </Popup>
+    </>
   )
 }
 
