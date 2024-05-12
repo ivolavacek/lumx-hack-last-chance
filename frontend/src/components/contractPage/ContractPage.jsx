@@ -12,12 +12,6 @@ const contractAddress = "0x58FdA51449837Ac04f9543329E1EDFB66326CcBD";
 function Contract() {
   const { language } = useContext(ModeContext);
 
-  const [namesArray, setNamesArray] = useState([]);
-  const [numbersArray, setNumbersArray] = useState([]);
-
-  const [loading, setLoading] = useState("");
-  const [inputs, setInputs] = useState([]);
-
   const text = language === 'en' ? {
     title: 'Contract',
     subtitle: 'Fill in the wallet addresses and percentages to be received',
