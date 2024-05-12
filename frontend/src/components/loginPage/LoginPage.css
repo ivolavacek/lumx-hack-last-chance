@@ -5,16 +5,17 @@
     justify-content: center;
 }
 
-.aaa {
-    color: #000;
-    margin-top: 100px;
-    margin-bottom: 20px;
-    font-weight: bold;
-}
-
-.bbb {
-    display: flex; 
+.login {
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
+    margin-top: 50px;
+    overflow: hidden;
+}
+
+.title-login {
+    align-items: center;
+    font-size: 40px;
+    margin-top: 10px;
 }

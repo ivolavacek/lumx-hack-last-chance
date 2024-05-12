@@ -137,6 +137,25 @@ app.post('/getinfo', (req, res) => {
   });
 });
 
+app.post('/authorize', (req, res) => {
+  // Extrair os dados do corpo da requisição
+  const { email, pwd } = req.body;
+
+  // Conferir se o email e a senha batem na db
+
+    db.run("SELECT * FROM clientes WHERE (email = ? OR username = ?) AND senha = ?", [email, email, pwd], (err, row) => {
+        if (err) {
+          return console.error(err.message);
+        }     
+        if (row) {
+          res.send(true); 
+        } else {
+          // Não foram encontrados o email e a senha na base de dados
+          res.send(false);
+        }
+    });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log('Backend is running...');
