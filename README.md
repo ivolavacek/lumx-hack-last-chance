@@ -18,4 +18,4 @@ Contract => https://cardona-zkevm.polygonscan.com/address/0x1ce8F206D7d5c15917C8
 ## Build & Run
 ```npm install```
 
-```npm run dev```
+```npm run start:all```
