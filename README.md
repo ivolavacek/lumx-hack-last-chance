@@ -8,10 +8,12 @@ Contract => https://cardona-zkevm.polygonscan.com/address/0x1ce8F206D7d5c15917C8
 
 ## Usage
 ```git clone https://github.com/ivolavacek/lumx-hack-last-chance.git```
+
 ```cd frontend```
 
 
 
 ## Build & Run
 ```npm install```
+
 ```npm run dev```
