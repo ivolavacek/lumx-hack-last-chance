@@ -3,6 +3,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    margin-top: 20px;
 }
 
 .login {
@@ -16,6 +17,6 @@
 
 .title-login {
     align-items: center;
-    font-size: 40px;
+    font-size: 32px;
     margin-top: 10px;
 }

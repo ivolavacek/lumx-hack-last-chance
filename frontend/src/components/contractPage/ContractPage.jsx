@@ -26,6 +26,11 @@ function Contract() {
     sending: 'Sending, please wait a moment...',
     sent: 'Sent',
     error: 'Oops, an error occurred!!',
+    popup1: 'Username',
+    popup2: 'Email',
+    popup3: 'Percentage',
+    popupBack: 'Back',
+    popupSend: 'Send contract',
   } : { 
     title: 'Contrato',
     subtitle: 'Preencha o endereço da carteiras e percentuais a receber',
@@ -38,6 +43,11 @@ function Contract() {
     sending: 'Enviando, aguarde um momento...',
     sent: 'Enviado',
     error: 'Ops, ocorreu algum erro !!',
+    popup1: 'Nome de usuário',
+    popup2: 'Email',
+    popup3: 'Percentual',
+    popupBack: 'Voltar',
+    popupSend: 'Enviar contrato',
   }
 
   const [usersArray, setUsersArray] = useState([]);
@@ -123,6 +133,7 @@ function Contract() {
           withCredentials: true
         }
       )
+      console.log(checkUser.data)
       return checkUser.data;
 
     } catch (err) {
@@ -142,8 +153,10 @@ function Contract() {
 
   const showPopup = async (e) => {
     e.preventDefault();
+    const users = inputs.map((input) => input.user);
+
     try {
-      const promises = usersArray.map((user) => {
+      const promises = users.map((user) => {
         return axios.post('http://localhost:3000/getinfo', 
           { user }, {
           headers: { 'Content-Type': 'application/json' },
@@ -223,15 +236,15 @@ function Contract() {
         <div>
           {popupData.map((item, index) => (
             <div key={index} className="popup-item">
-              <p><b>Username:</b> {item.username}</p>
-              <p><b>Email:</b> {item.email}</p>
-              <p><b>Percentage: {item.percentage}%</b></p>
+              <p><b>{text.popup1}:</b> {item.username}</p>
+              <p><b>{text.popup2}:</b> {item.email}</p>
+              <p><b>{text.popup3}: {item.percentage}%</b></p>
               <p><b>ID Lumx:</b> {item.id_lumx}</p>
             </div>
           ))}
           <div className="lastButtons">
-            <button className="back-button" onClick={() => setPopupOpen(false)}>Back</button>
-            <button className="send-button" onClick={() => {setPopupOpen(false); sendContract();}}>Send Contract</button>
+            <button className="back-button" onClick={() => setPopupOpen(false)}>{text.popupBack}</button>
+            <button className="send-button" onClick={() => {setPopupOpen(false); sendContract();}}>{text.popupSend}</button>
           </div>
         </div>
       </Popup>
