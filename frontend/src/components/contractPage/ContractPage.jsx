@@ -9,7 +9,7 @@ import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import axios from 'axios'
 
-const contractAddress = "0x58FdA51449837Ac04f9543329E1EDFB66326CcBD";
+const contractAddress = "0x1ce8F206D7d5c15917C8A2fC3880AF3336439F47";
 
 function Contract() {
   const { language } = useContext(ModeContext);
